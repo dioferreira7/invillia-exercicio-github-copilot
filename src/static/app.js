@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
+  const participantsContainer = document.getElementById("participants-container");
+  const participantsList = document.getElementById("participants-list");
 
   // Function to fetch activities from API
   async function fetchActivities() {
@@ -38,6 +40,32 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
       console.error("Error fetching activities:", error);
+    }
+  }
+
+  // Function to fetch and display participants of a selected activity
+  async function fetchParticipants(activityName) {
+    try {
+      const response = await fetch(`/activities/${encodeURIComponent(activityName)}/participants`);
+      const participants = await response.json();
+
+      participantsList.innerHTML = "";
+
+      if (participants.length === 0) {
+        participantsList.innerHTML = "<li>No participants yet.</li>";
+      } else {
+        participants.forEach((participant) => {
+          const listItem = document.createElement("li");
+          listItem.textContent = participant;
+          participantsList.appendChild(listItem);
+        });
+      }
+
+      participantsContainer.classList.remove("hidden");
+    } catch (error) {
+      console.error("Error fetching participants:", error);
+      participantsList.innerHTML = "<li>Failed to load participants. Please try again later.</li>";
+      participantsContainer.classList.remove("hidden");
     }
   }
 
@@ -78,6 +106,17 @@ document.addEventListener("DOMContentLoaded", () => {
       messageDiv.className = "error";
       messageDiv.classList.remove("hidden");
       console.error("Error signing up:", error);
+    }
+  });
+
+  // Update participants when an activity is selected
+  activitySelect.addEventListener("change", (event) => {
+    const selectedActivity = event.target.value;
+
+    if (selectedActivity) {
+      fetchParticipants(selectedActivity);
+    } else {
+      participantsContainer.classList.add("hidden");
     }
   });
 
